@@ -5,6 +5,7 @@ import (
 	"net/http"
 	funcs "nifri2/ytrc/handlers"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -14,9 +15,34 @@ import (
 func find_bin() string {
 	var bin string
 	var found bool
+	var sep string
+	var psep string
 
 	env_path := os.Getenv("PATH")
-	for _, path := range strings.Split(env_path, ":") {
+
+	os_v := runtime.GOOS
+	fmt.Println("PATH:", env_path)
+
+	switch os_v {
+	case "windows":
+		log.Info().Msg("OS: Windows")
+		sep = ";"
+		psep = "\\"
+	case "darwin":
+		log.Info().Msg("OS: Mac")
+		sep = ":"
+		psep = "/"
+	case "linux":
+		log.Info().Msg("OS: Linux")
+		sep = ":"
+		psep = "/"
+	default:
+		log.Warn().Msg("OS: Unknown")
+		sep = ":"
+		psep = "/"
+	}
+
+	for _, path := range strings.Split(env_path, sep) {
 		log.Info().Str("path", path).Msg("Checking path")
 
 		p, err := os.ReadDir(path)
@@ -28,19 +54,19 @@ func find_bin() string {
 		for _, file := range p {
 			switch file.Name() {
 			case "yt-dlp":
-				bin = path + "/" + file.Name()
+				bin = path + psep + file.Name()
 				log.Info().Str("bin", bin).Msg("Found yt-dlp")
 				found = true
 			case "yt-dlp.exe":
-				bin = path + "/" + file.Name()
+				bin = path + psep + file.Name()
 				log.Info().Str("bin", bin).Msg("Found yt-dlp.exe")
 				found = true
 			case "yt-dlp_macos":
-				bin = path + "/" + file.Name()
+				bin = path + psep + file.Name()
 				log.Info().Str("bin", bin).Msg("Found yt-dlp_macos")
 				found = true
 			case "yt-dlp_linux":
-				bin = path + "/" + file.Name()
+				bin = path + psep + file.Name()
 				log.Info().Str("bin", bin).Msg("Found yt-dlp_linux")
 				found = true
 			}
@@ -62,9 +88,11 @@ func find_bin() string {
 
 func main() {
 	bin := find_bin()
-	fmt.Printf("Using: %s \n", bin)
+	if bin == "not found" {
+		panic("yt-dlp not found in $PATH")
+	}
 
-	funcs.Test()
+	fmt.Printf("Using: %s \n", bin)
 
 	router := mux.NewRouter()
 

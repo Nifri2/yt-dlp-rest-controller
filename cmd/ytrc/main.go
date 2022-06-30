@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	kvdb "nifri2/ytrc/db"
 	funcs "nifri2/ytrc/handlers"
 	"os"
 	"runtime"
@@ -19,9 +20,7 @@ func find_bin() string {
 	var psep string
 
 	env_path := os.Getenv("PATH")
-
 	os_v := runtime.GOOS
-	fmt.Println("PATH:", env_path)
 
 	switch os_v {
 	case "windows":
@@ -94,9 +93,14 @@ func main() {
 
 	fmt.Printf("Using: %s \n", bin)
 
+	kvdb.Init()
+	//kvdb.Set("kvdb.go", time.Now().Unix())
+
 	router := mux.NewRouter()
 
+	router.HandleFunc("/", funcs.Index).Methods("GET")
 	router.HandleFunc("/grab", funcs.Grab).Methods("GET")
+	router.HandleFunc("/grabbed/{id}", kvdb.Serve).Methods("GET")
 
 	log.Info().Str("port", ":4000").Msg("API is running")
 	http.ListenAndServe("0.0.0.0:4000", router)

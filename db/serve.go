@@ -3,29 +3,50 @@ package kvdb
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 )
 
-func Serve(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	key := vars["id"]
-	log.Info().Str("endpoint", "endpoint").Msg("Serveing")
-	// write id to response
+func Test_srv(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
+}
+
+func Serve(key string) string {
+	log.Info().Str("endpoint", "endpoint").Msg("Serveing")
+	// write id to response
+	// print all values in db
+	db.Range(func(key, value interface{}) bool {
+		fmt.Printf("%s=%s\n", key, value)
+		return true
+	})
 	// get value from db
-	val, ok := Get(key)
+	_, ok := Get(key)
 	if !ok {
-		w.WriteHeader(http.StatusNotFound)
 		res := "{\"message\":\"Key not found\"}"
-		fmt.Fprint(w, res)
-		return
+		return res
 	}
+
 	// write value to response
-	val_str := fmt.Sprintf("%d", val)
+	val_str := key
+
+	p, err := os.ReadDir("../static")
+	if err != nil {
+		log.Error().Err(err).Msg("Error reading folder")
+		panic("Error reading static folder")
+	}
+
+	// if val_str in
+	for _, f := range p {
+		if strings.Split(f.Name(), ".")[0] == key {
+			val_str = f.Name()
+		}
+	}
+
 	res := fmt.Sprintf("{\"message\":\"%s\"}", val_str)
-	fmt.Fprint(w, res)
+	return res
 
 }

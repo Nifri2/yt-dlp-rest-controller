@@ -37,8 +37,8 @@ func Grabber(url string) string {
 	// build hash of the url
 	hash := sha256.New()
 	hash.Write([]byte(url))
-	hash_val := fmt.Sprintf("%x ", hash.Sum(nil))
-	name := hash_val + ".%(ext)s"
+	hash_val := fmt.Sprintf("%x", hash.Sum(nil))
+	name := "../static/" + hash_val + ".%(ext)s"
 
 	// kvdb set url, unix time
 	kvdb.Set(hash_val, time.Now().Unix())
@@ -56,7 +56,7 @@ func Grabber(url string) string {
 		select {
 		case finalStatus := <-infoChan:
 			log.Info().Str("status", finalStatus.Cmd).Msg("Done")
-			return "Done"
+			return kvdb.Serve(hash_val)
 		default:
 			continue
 		}

@@ -27,6 +27,7 @@ func Grab(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, res)
 		return
 	}
+
 	ref := Grabber(q[0])
 	res := fmt.Sprintf("{\"message\":\"%s\"}", ref)
 	fmt.Fprint(w, res)

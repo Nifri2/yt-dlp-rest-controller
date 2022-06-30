@@ -2,6 +2,8 @@ package kvdb
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -35,6 +37,7 @@ func Delete(key string) {
 
 func Iter(f func(key string, val string)) {
 	db.Range(func(key, val interface{}) bool {
+		fmt.Println(key, val)
 		f(key.(string), val.(string))
 		return true
 	})
@@ -50,6 +53,20 @@ func Checkerd() {
 				if time.Now().Unix()-val.(int64) > 300 {
 					log.Info().Str("key", key.(string)).Msg("Expired")
 					Delete(key.(string))
+					// iterate over folder
+
+					p, err := os.ReadDir("../static")
+					if err != nil {
+						log.Error().Err(err).Msg("Error reading folder")
+						panic("could not read static folder")
+					}
+					for _, file := range p {
+						if strings.Split(file.Name(), ".")[0] == key.(string) {
+							log.Info().Str("file", file.Name()).Msg("Deleting file")
+							os.Remove("../static/" + file.Name())
+						}
+					}
+
 				}
 				return true
 			})

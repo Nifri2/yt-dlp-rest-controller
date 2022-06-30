@@ -100,9 +100,11 @@ func main() {
 
 	router.HandleFunc("/", funcs.Index).Methods("GET")
 	router.HandleFunc("/grab", funcs.Grab).Methods("GET")
-	router.HandleFunc("/grabbed/{id}", kvdb.Serve).Methods("GET")
 
 	log.Info().Str("port", ":4000").Msg("API is running")
+
+	// start fileserver in this folder
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("../static"))))
 	http.ListenAndServe("0.0.0.0:4000", router)
 
 }

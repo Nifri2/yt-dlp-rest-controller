@@ -18,11 +18,7 @@ func Test_srv(w http.ResponseWriter, r *http.Request) {
 func Serve(key string) string {
 	log.Info().Str("endpoint", "endpoint").Msg("Serveing")
 	// write id to response
-	// print all values in db
-	db.Range(func(key, value interface{}) bool {
-		fmt.Printf("%s=%s\n", key, value)
-		return true
-	})
+
 	// get value from db
 	_, ok := Get(key)
 	if !ok {
@@ -46,7 +42,7 @@ func Serve(key string) string {
 		}
 	}
 
-	res := fmt.Sprintf("{\"message\":\"%s\"}", val_str)
+	res := fmt.Sprintf(val_str)
 	return res
 
 }
